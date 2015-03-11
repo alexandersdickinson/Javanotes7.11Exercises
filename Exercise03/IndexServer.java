@@ -86,42 +86,36 @@ public class IndexServer{
 			output.println("The chosen directory is " + directory.getName());
 			output.println();
 			output.flush();
-			Scanner input = new Scanner(connection.getInputStream());
-			inputToken = input.next().toUpperCase();
+			Scanner input = new Scanner(new InputStreamReader(connection.getInputStream()));
+			inputToken = input.next();
 			
-			if(inputToken.equals("INDEX")){
+			if(inputToken.equalsIgnoreCase("INDEX")){
 				//send list of files in directory through connection's outputstream.				
 				for(String file:files){
 					output.println(file);
 					output.flush();
 				}
 			}
-			else if(inputToken.equals("GET")){
+			else if(inputToken.equalsIgnoreCase("GET")){
 				//send confirmation that file exists, and if so, the contents of that file.
 				input.useDelimiter("[\\<\\>]");
-				input.next();//get rid of "GET"
+				input.next();
 				fileName = input.next();
 				
-				if(Arrays.asList(files).contains(fileName)){//Check if file exists in the chosen directory.
-					txtFile = new File(fileName);
+				txtFile = new File(directory, fileName);
+				if(!txtFile.exists()){
+					output.println("This file does not exist in the chosen directory.");
+					output.flush();
 				}
-				else{
-					output.println("This file is not in the chosen directory.");
-					return;
-				}
-				
+								
 				input.reset();//use whitespace delimiter again
 					
-				try(Scanner fileScan = new Scanner(new FileReader(txtFile))){
-					
-					while(fileScan.hasNext()){
-						output.println(fileScan.nextLine());
-					}
-					output.println();
-					
+				try{
+					copyFile(txtFile, connection);
 				}
 				catch(IOException e){
-					output.println("An error occurred in finding the chosen file: " + e);
+					output.println("An error occurred while processing file: " + e);
+					e.printStackTrace();
 				}
 				
 			}
@@ -130,12 +124,37 @@ public class IndexServer{
 				output.flush();
 			}
 			
+			output.close();
 			connection.close();
 			
 		}
 		catch(Exception e){
 			System.out.println("Error: " + e);
 		}
+		
+	}
+	
+	/**
+		This subroutine takes a file and copies it to a file called "copy" in the documents folder.
+		Precondition: A source file of extension .txt that is in the directory being accessed by the server.
+		Postcondition: A copy of the source file is created in the documents folder of the client.
+		@param source A source .txt file.
+		@throws Exception An error in creating the copy.
+	*/
+	static void copyFile(File source, Socket connection) throws Exception{
+		
+		String line;
+		Scanner fileRead = new Scanner(new FileReader(source));//Reads from source
+		PrintWriter filePush = new PrintWriter(connection.getOutputStream());
+		
+		while(fileRead.hasNext()){
+			line = fileRead.nextLine();
+			filePush.println(line);
+		}
+		
+		filePush.flush();
+		fileRead.close();
+		filePush.close();
 		
 	}
 	

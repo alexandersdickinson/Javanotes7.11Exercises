@@ -13,28 +13,38 @@ public class IndexClient{
 	
 	public static void main(String[] args){
 				
-		System.out.println("Type in the name of a file");
 		Scanner in = new Scanner(System.in);
+		File copy = new File("/Users/alexandersdickinson/documents", "copy");
+		String command;
+		String line;
 		
 		try{
 			Socket connection = new Socket(InetAddress.getByName(null), LISTENING_PORT);
 			Scanner input = new Scanner(new InputStreamReader(connection.getInputStream()));
 			PrintWriter output = new PrintWriter(connection.getOutputStream());
+			PrintWriter copyWrite = new PrintWriter(new FileWriter(copy));
 			
-			while(!input.hasNext("\n")){//Prints messages from server before request is required of client.
-				System.out.println(input.nextLine());
-			}
-			output.println(in.nextLine());//User's request of the server.
+			System.out.println(input.nextLine());
+			System.out.println(input.nextLine());
+			System.out.println(input.nextLine());
+			
+			System.out.println("Type in the name of a file");
+			command = in.nextLine();
+			output.println(command);//User's request of the server.
 			output.flush();
 			
-			while(true){
-				System.out.println(input.nextLine());
+			while(input.hasNext()){				
+				line = input.nextLine();
+				System.out.println(line);
+				copyWrite.println(line);
 			}
-			
-			//input.close();
+			copyWrite.flush();
+			copyWrite.close();			
+			input.close();
 		}
 		catch(Exception e){
 			System.out.println("Error occurred while trying to connect to the host: " + e);
+			e.printStackTrace();
 		}
 		
 	}
