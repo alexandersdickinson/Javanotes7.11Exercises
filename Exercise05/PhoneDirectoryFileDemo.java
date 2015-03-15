@@ -29,8 +29,6 @@ public class PhoneDirectoryFileDemo {
      * "hidden" file on Unix-based computers, including Linux and
      * Mac OS X.
      */
-    private static String DATA_FILE_NAME = ".phone_book_demo";
-
 
     public static void main(String[] args) {
 
@@ -70,24 +68,29 @@ public class PhoneDirectoryFileDemo {
             try {
                 DocumentBuilder docReader = DocumentBuilderFactory.newInstance().newDocumentBuilder();
                 xmldoc = docReader.parse(dataFile);
-            }
-            catch (Exception e) {
-                System.out.println("Sorry, but an error occurred while trying to read the file:\n" + e);
-                return;
-            }
 			
-			Element root = xmldoc.getDocumentElement();
-			NodeList entries = root.getChildNodes();
+				Element root = xmldoc.getDocumentElement();
+				NodeList entries = root.getChildNodes();
 			
-			for(int i = 0; i < entries.getLength(); i++){
+				for(int i = 0; i < entries.getLength(); i++){
 				
-				Element entry = (Element)entries.item(i);
-				String entryName = entry.getAttribute("name");
-				String entryNumber = entry.getAttribute("number");
-				phoneBook.put(entryName, entryNumber);
+				assert entries.item(i) instanceof Element : "Item is not an element";
+					if(entries.item(i) instanceof Element){
+						Element entry = (Element)entries.item(i);
+						String entryName = entry.getAttribute("name");
+						String entryNumber = entry.getAttribute("number");
+						phoneBook.put(entryName, entryNumber);
+					} 
 					
+				}
 			}
-				
+			catch(Exception e){
+				System.out.println("Error in read phone book data file.");
+	            System.out.println("File name:  " + dataFile.getAbsolutePath());
+				e.printStackTrace();
+	            System.out.println("This program cannot continue.");
+	            System.exit(1);
+			}	
 			
         }
 
@@ -188,7 +191,7 @@ public class PhoneDirectoryFileDemo {
                 return;
             }
 			
-			out.println("<phonedirectoryfiledemo version = \"1.0\">");
+			out.println("<phonedirectoryfiledemo>");
 			
             for ( Map.Entry<String,String> entry : phoneBook.entrySet() )
                 out.println("	<entry name = '" + entry.getKey() + "' number = '" + entry.getValue() + "'/>");
